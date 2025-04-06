@@ -1,6 +1,10 @@
 function FATAL() {
-  echo "ERROR: $@"
+  echo "FATAL: $@"
   exit 1
+}
+
+function ERROR() {
+  echo "ERROR: $@"
 }
 
 function WARN() {
@@ -12,8 +16,31 @@ function tool::assert() {
   local expr=$1
   local message=$2
   if ! eval "[[ $expr ]]"; then
-    FATAL "assert failed. [expr=$expr, message=$message]"
+    FATAL "assert failed. [expr=\"$expr\", message=$message]"
   fi
+}
+
+tool::get_current_script_path() {
+  local SOURCE DIR
+  SOURCE="${BASH_SOURCE[-1]:-$0}"
+  while [ -L "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+  done
+  echo "$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)/$(basename "$SOURCE")"
+}
+
+tool::get_script_path() {
+  usage="tool::get_script_path {script}"
+  local SOURCE DIR
+  SOURCE="${BASH_SOURCE:-$0}"
+  while [ -L "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+  done
+  echo "$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 }
 
 function tool::is_same_file() {

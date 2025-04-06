@@ -1,5 +1,4 @@
-BASE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-source "$BASE/../../common/utils.sh"
+source "$COMMON_SHELL_DIR/common/utils.sh"
 
 # docker::ensure_container {image} {container_name}
 function docker::ensure_container() {
@@ -18,16 +17,14 @@ function docker::build() {
   local build_script=$3
   local dockerfile=$4
   local dest_image_tag=$5
-  if [ ! $# -eq 5 ]; then
-    FATAL "unexpected params count. [params($#): $@, usage: $usage]"
-  fi
+  [[ $# -ne 5 ]] && ERROR "unexpected params count. \n\tparams($#): $@ \n\tusage: $usage" && return 5
 
   local c_build_dir='/build'
   docker run --rm -t \
     -v "${source_path}:${c_build_dir}" \
     ${build_image} \
     bash -c "cd ${c_build_dir} && bash ${build_script}"
-  tool::assert "$? -eq 0" "build failed"
+  [[ $? -eq 0 ]] && ERROR "build application failed" && return 5
+  docker build -f ${dockerfile} -t ${dest_image_tag} ${c_build_dir}
+  [[ $? -eq 0 ]] && ERROR "build image failed" && return 5
 }
-
-docker::build 1 2 3 4 5
