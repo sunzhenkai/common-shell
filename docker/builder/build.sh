@@ -29,7 +29,9 @@ function docker::build() {
 
   # [optional] build application image
   if [[ $# -eq 5 ]]; then
-    docker build -f ${dockerfile} -t ${dest_image_tag} ${c_build_dir}
+    pushd ${source_path} || exit 1
+    docker build -f ${dockerfile} -t ${dest_image_tag} .
     [[ $? -eq 0 ]] && ERROR "build image failed" && return 5
+    popd
   fi
 }
