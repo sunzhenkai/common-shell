@@ -21,8 +21,19 @@ function docker::build() {
 
   # build application
   local c_build_dir='/build'
+  local env_args=""
+  
+  # 传递用户 ID 和组 ID 到容器中，用于设置文件权限
+  if [ -n "$BUILD_UID" ]; then
+    env_args="$env_args -e BUILD_UID=$BUILD_UID"
+  fi
+  if [ -n "$BUILD_GID" ]; then
+    env_args="$env_args -e BUILD_GID=$BUILD_GID"
+  fi
+  
   docker run --rm -t \
     -v "${source_path}:${c_build_dir}" \
+    ${env_args} \
     ${build_image} \
     bash --login -c "cd ${c_build_dir} && bash ${build_script}"
   [[ $? -ne 0 ]] && ERROR "build application failed" && return 5
